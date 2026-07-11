@@ -1,0 +1,140 @@
+CHATFLIX - REAL-TIME CHAT APPLICATION SUBMISSION
+================================================
+
+1. GITHUB REPOSITORY LINK
+-------------------------
+https://github.com/maheshsingh20/ChatFlix
+
+Repository includes:
+- Complete source code (frontend + backend)
+- README.md with setup instructions
+- All documentation
+
+
+2. LIVE BACKEND DEPLOYMENT
+---------------------------
+URL: https://chatflix-sjfr.onrender.com
+Health Check: https://chatflix-sjfr.onrender.com/health
+Status: ✅ Live and operational
+
+Test the API:
+curl -X POST https://chatflix-sjfr.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@test.com","password":"test123"}'
+
+
+3. APK FILE / SCREEN RECORDING
+-------------------------------
+✅ APK BUILT AND UPLOADED!
+
+EAS Build Link:
+https://expo.dev/accounts/maheshsingh09s-team/projects/mahesh/builds/e86a4695-7ee8-434b-ad94-0e2ca2488af1
+
+Status: ✅ Build completed successfully
+Version: 2.0.0
+Platform: Android
+Profile: Preview
+
+Download APK from EAS link above or from Google Drive below
+
+
+4. GOOGLE DRIVE LINK
+---------------------
+✅ APK UPLOADED TO GOOGLE DRIVE!
+
+Link: https://drive.google.com/drive/folders/1u9nhb3TfKM29AHM6tl9_c_8SZkEh3MWd?usp=sharing
+
+Folder contains:
+- ChatFlix-v2.0.0.apk (Android APK file)
+- README.md (Setup instructions)
+- SUBMISSION.md (Detailed documentation)
+
+Access: Public - Anyone with link can view and download
+
+
+5. README WITH SETUP INSTRUCTIONS
+----------------------------------
+Main README: https://github.com/maheshsingh20/ChatFlix/blob/main/README.md
+
+Quick Setup:
+Backend:  cd backend && npm install && npm start
+Frontend: cd frontend && npm install && npm start
+
+
+6. KEY FEATURES IMPLEMENTED
+----------------------------
+✅ Real-time messaging with Socket.io (MANDATORY)
+✅ React Native mobile app
+✅ Send and receive messages instantly
+✅ View chat history
+✅ Message timestamps
+✅ Clean architecture
+✅ Error handling
+✅ BONUS: Typing indicators
+✅ BONUS: Online/offline status
+✅ BONUS: Message status (sent/delivered/read)
+✅ BONUS: MongoDB storage
+✅ BONUS: Backend deployed on Render
+
+
+7. TECHNOLOGY STACK
+--------------------
+Frontend: React Native (Expo SDK 49)
+Backend: Node.js + Express + Socket.io v4
+Database: MongoDB Atlas
+Authentication: JWT
+Deployment: Render (backend)
+
+
+8. PROJECT STRUCTURE
+---------------------
+ChatFlix/
+├── backend/          Node.js backend
+├── frontend/         React Native Expo app
+├── README.md         Complete documentation
+├── DEPLOY_NOW.md     Deployment guide
+└── SUBMISSION.md     Detailed submission info
+
+
+9. CONTACT
+----------
+Developer: Mahesh Singh
+GitHub: @maheshsingh20
+Repository: https://github.com/maheshsingh20/ChatFlix
+
+
+10. EVALUATION CHECKLIST
+-------------------------
+✅ GitHub repository with code
+✅ README with setup instructions
+✅ Socket.io implementation (mandatory)
+✅ Real-time messaging works
+✅ Backend deployed and live
+✅ All bonus features implemented
+✅ APK file built and uploaded
+✅ Google Drive link with public access
+✅ Clean, documented code
+✅ Error handling throughout
+
+
+SUBMISSION STATUS: ✅ COMPLETE
+APK STATUS: ✅ BUILT AND UPLOADED
+BACKEND STATUS: ✅ LIVE at https://chatflix-sjfr.onrender.com
+GOOGLE DRIVE: ✅ https://drive.google.com/drive/folders/1u9nhb3TfKM29AHM6tl9_c_8SZkEh3MWd?usp=sharing
+
+================================================
+
+QUICK LINKS FOR SUBMISSION:
+================================================
+
+1. GitHub: https://github.com/maheshsingh20/ChatFlix
+
+2. APK (EAS): https://expo.dev/accounts/maheshsingh09s-team/projects/mahesh/builds/e86a4695-7ee8-434b-ad94-0e2ca2488af1
+
+3. Google Drive: https://drive.google.com/drive/folders/1u9nhb3TfKM29AHM6tl9_c_8SZkEh3MWd?usp=sharing
+
+4. Live Backend: https://chatflix-sjfr.onrender.com
+
+5. README: https://github.com/maheshsingh20/ChatFlix/blob/main/README.md
+
+================================================
