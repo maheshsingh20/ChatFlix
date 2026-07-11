@@ -1,142 +1,64 @@
 const Message = require('../models/Message');
+const ChatRoom = require('../models/ChatRoom');
 const User = require('../models/User');
-
-// Store active users and their typing status
-const activeUsers = new Map();
-const typingUsers = new Set();
 
 const setupSocketHandlers = (io) => {
   io.on('connection', (socket) => {
     console.log(`✅ User connected: ${socket.id}`);
 
-    // Handle user login
-    socket.on('user:login', async (username) => {
-      try {
-        socket.username = username;
-        activeUsers.set(socket.id, username);
+    socket.on('join:room', async ({ roomId, userId }) => {
+      socket.join(roomId);
+      socket.userId = userId;
+      socket.currentRoom = roomId;
 
-        // Update user in database
-        await User.findOneAndUpdate(
-          { username },
-          {
-            username,
-            socketId: socket.id,
-            isOnline: true,
-            lastSeen: new Date(),
-          },
-          { upsert: true, new: true }
-        );
-
-        // Send current online users to the newly connected user
-        const onlineUsers = Array.from(activeUsers.values());
-        socket.emit('users:online', onlineUsers);
-
-        // Broadcast to all clients that a new user joined
-        io.emit('user:joined', { username, onlineUsers });
-
-        console.log(`👤 User logged in: ${username}`);
-      } catch (error) {
-        console.error('Error during user login:', error);
-        socket.emit('error', { message: 'Failed to login' });
-      }
+      await User.findByIdAndUpdate(userId, { socketId: socket.id, isOnline: true });
+      console.log(`User ${userId} joined room ${roomId}`);
     });
 
-    // Handle sending messages
-    socket.on('message:send', async (data) => {
-      try {
-        const { username, message } = data;
+    socket.on('leave:room', (roomId) => {
+      socket.leave(roomId);
+    });
 
-        // Save message to database
-        const newMessage = new Message({
-          username,
+    socket.on('message:send', async ({ roomId, senderId, message }) => {
+      try {
+        const newMessage = await Message.create({
+          chatRoom: roomId,
+          sender: senderId,
           message,
           timestamp: new Date(),
-          status: 'sent',
         });
 
-        await newMessage.save();
+        const populatedMessage = await Message.findById(newMessage._id)
+          .populate('sender', 'username displayName avatar');
 
-        // Broadcast message to all connected clients
-        io.emit('message:receive', {
-          _id: newMessage._id,
-          username: newMessage.username,
-          message: newMessage.message,
-          timestamp: newMessage.timestamp,
-          status: newMessage.status,
+        await ChatRoom.findByIdAndUpdate(roomId, {
+          lastMessage: newMessage._id,
+          lastMessageTime: new Date(),
         });
 
-        console.log(`💬 Message from ${username}: ${message}`);
+        io.to(roomId).emit('message:new', populatedMessage);
       } catch (error) {
-        console.error('Error sending message:', error);
-        socket.emit('error', { message: 'Failed to send message' });
+        console.error('Message send error:', error);
       }
     });
 
-    // Handle typing indicator
-    socket.on('typing:start', (username) => {
-      typingUsers.add(username);
-      socket.broadcast.emit('user:typing', username);
+    socket.on('typing:start', ({ roomId, userId }) => {
+      socket.to(roomId).emit('user:typing', userId);
     });
 
-    socket.on('typing:stop', (username) => {
-      typingUsers.delete(username);
-      socket.broadcast.emit('user:stopped-typing', username);
+    socket.on('typing:stop', ({ roomId, userId }) => {
+      socket.to(roomId).emit('user:stopped-typing', userId);
     });
 
-    // Handle message status updates
-    socket.on('message:delivered', async (messageId) => {
-      try {
-        await Message.findByIdAndUpdate(messageId, { status: 'delivered' });
-        io.emit('message:status-update', { messageId, status: 'delivered' });
-      } catch (error) {
-        console.error('Error updating message status:', error);
-      }
-    });
-
-    socket.on('message:read', async (messageId) => {
-      try {
-        await Message.findByIdAndUpdate(messageId, { status: 'read' });
-        io.emit('message:status-update', { messageId, status: 'read' });
-      } catch (error) {
-        console.error('Error updating message status:', error);
-      }
-    });
-
-    // Handle disconnection
     socket.on('disconnect', async () => {
-      try {
-        const username = activeUsers.get(socket.id);
-
-        if (username) {
-          activeUsers.delete(socket.id);
-          typingUsers.delete(username);
-
-          // Update user status in database
-          await User.findOneAndUpdate(
-            { username },
-            {
-              isOnline: false,
-              lastSeen: new Date(),
-              socketId: null,
-            }
-          );
-
-          // Broadcast to all clients that user left
-          const onlineUsers = Array.from(activeUsers.values());
-          io.emit('user:left', { username, onlineUsers });
-
-          console.log(`👋 User disconnected: ${username}`);
-        } else {
-          console.log(`👋 User disconnected: ${socket.id}`);
-        }
-      } catch (error) {
-        console.error('Error during disconnect:', error);
+      if (socket.userId) {
+        await User.findByIdAndUpdate(socket.userId, {
+          isOnline: false,
+          lastSeen: new Date(),
+          socketId: null,
+        });
+        console.log(`User ${socket.userId} disconnected`);
       }
-    });
-
-    // Handle errors
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
     });
   });
 };

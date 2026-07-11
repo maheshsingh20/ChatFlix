@@ -2,10 +2,15 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
   {
-    username: {
-      type: String,
+    chatRoom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ChatRoom',
       required: true,
-      trim: true,
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     message: {
       type: String,
@@ -27,7 +32,6 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// Index for faster queries
-messageSchema.index({ timestamp: -1 });
+messageSchema.index({ chatRoom: 1, timestamp: -1 });
 
 module.exports = mongoose.model('Message', messageSchema);

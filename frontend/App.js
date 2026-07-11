@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import LoginScreen from './src/screens/LoginScreen';
-import EnhancedChatScreen from './src/screens/EnhancedChatScreen';
+import AuthScreen from './src/screens/AuthScreen';
+import ChatListScreen from './src/screens/ChatListScreen';
+import ChatRoomScreen from './src/screens/ChatRoomScreen';
+import ContactsScreen from './src/screens/ContactsScreen';
 import { lightTheme, darkTheme } from './src/utils/theme';
 
+const Stack = createStackNavigator();
+
 export default function App() {
-  const [username, setUsername] = useState(null);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -17,16 +24,16 @@ export default function App() {
 
   const loadSettings = async () => {
     try {
-      const savedUsername = await AsyncStorage.getItem('username');
+      const savedToken = await AsyncStorage.getItem('token');
+      const savedUser = await AsyncStorage.getItem('user');
       const savedTheme = await AsyncStorage.getItem('theme');
 
-      if (savedUsername) {
-        setUsername(savedUsername);
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
       }
 
-      if (savedTheme === 'dark') {
-        setIsDarkMode(true);
-      }
+      if (savedTheme === 'dark') setIsDarkMode(true);
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -34,22 +41,21 @@ export default function App() {
     }
   };
 
-  const handleLogin = (newUsername) => {
-    setUsername(newUsername);
+  const handleAuth = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
   };
 
-  const handleLogout = () => {
-    setUsername(null);
+  const handleLogout = async () => {
+    await AsyncStorage.multiRemove(['token', 'user']);
+    setUser(null);
+    setToken(null);
   };
 
   const toggleTheme = async () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
-    try {
-      await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
+    await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -63,35 +69,27 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <NavigationContainer>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
-      {username ? (
-        <EnhancedChatScreen
-          username={username}
-          onLogout={handleLogout}
-          theme={theme}
-          isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
-        />
+      {!user || !token ? (
+        <AuthScreen onAuth={handleAuth} theme={theme} />
       ) : (
-        <LoginScreen
-          onLogin={handleLogin}
-          theme={theme}
-          isDarkMode={isDarkMode}
-        />
+        <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: theme.headerBg }, headerTintColor: theme.headerText }}>
+          <Stack.Screen name="ChatList" options={{ title: 'Chats' }}>
+            {(props) => <ChatListScreen {...props} user={user} token={token} theme={theme} isDarkMode={isDarkMode} toggleTheme={toggleTheme} onLogout={handleLogout} />}
+          </Stack.Screen>
+          <Stack.Screen name="Chat" options={{ title: 'Chat' }}>
+            {(props) => <ChatRoomScreen {...props} user={user} token={token} theme={theme} isDarkMode={isDarkMode} />}
+          </Stack.Screen>
+          <Stack.Screen name="Contacts" options={{ title: 'Contacts' }}>
+            {(props) => <ContactsScreen {...props} user={user} token={token} theme={theme} />}
+          </Stack.Screen>
+        </Stack.Navigator>
       )}
-    </SafeAreaView>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
-
