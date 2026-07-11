@@ -1,30 +1,30 @@
 {
   "expo": {
-    "name": "ChatApp",
-    "slug": "mahesh",
-    "version": "1.0.0",
+    "name": "ChatFlix",
+    "slug": "chatflix",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2196F3"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chatapp.mobile"
+      "bundleIdentifier": "com.chatflix.mobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#2196F3"
       },
-      "package": "com.chatapp.mobile",
-      "versionCode": 1
+      "package": "com.chatflix.mobile",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

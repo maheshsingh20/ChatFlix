@@ -2,14 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import moment from 'moment';
 
-const EnhancedMessageBubble = ({
-  message,
-  username,
-  timestamp,
-  status,
-  isOwnMessage,
-  theme
-}) => {
+const EnhancedMessageBubble = ({ message, username, timestamp, status, isOwnMessage, theme }) => {
   const formatTime = (time) => {
     const msgTime = moment(time);
     const now = moment();
@@ -43,7 +36,7 @@ const EnhancedMessageBubble = ({
       case 'delivered':
         return theme.delivered;
       default:
-        return theme.textSecondary;
+        return isOwnMessage ? 'rgba(255,255,255,0.7)' : theme.textSecondary;
     }
   };
 
@@ -51,7 +44,7 @@ const EnhancedMessageBubble = ({
     <View
       style={[
         styles.container,
-        isOwnMessage ? styles.ownMessage : styles.otherMessage,
+        isOwnMessage ? [styles.ownMessage, { backgroundColor: theme.ownMessageBg }] : [styles.otherMessage, { backgroundColor: theme.otherMessageBg }],
       ]}
     >
       {!isOwnMessage && (
@@ -71,7 +64,7 @@ const EnhancedMessageBubble = ({
         <Text
           style={[
             styles.time,
-            { color: isOwnMessage ? theme.ownMessageText : theme.textSecondary, opacity: 0.7 }
+            { color: isOwnMessage ? 'rgba(255,255,255,0.8)' : theme.textSecondary }
           ]}
         >
           {formatTime(timestamp)}
@@ -88,34 +81,35 @@ const EnhancedMessageBubble = ({
 
 const styles = StyleSheet.create({
   container: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 16,
+    maxWidth: '75%',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
     marginBottom: 8,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 2,
   },
   ownMessage: {
     alignSelf: 'flex-end',
-    marginLeft: 50,
+    marginLeft: 60,
     borderBottomRightRadius: 4,
   },
   otherMessage: {
     alignSelf: 'flex-start',
-    marginRight: 50,
+    marginRight: 60,
     borderBottomLeftRadius: 4,
   },
   username: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     marginBottom: 4,
   },
   message: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 21,
   },
   footer: {
     flexDirection: 'row',
@@ -127,8 +121,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   status: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    marginLeft: 2,
   },
 });
 

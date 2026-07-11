@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import socketService from '../services/socketService';
-import axios from 'axios';
-import { API_URL } from '../utils/config';
+import { apiService } from '../services/apiService';
 import EnhancedMessageBubble from '../components/EnhancedMessageBubble';
+import TypingIndicator from '../components/TypingIndicator';
 import UserAvatar from '../components/UserAvatar';
 
 const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
@@ -11,28 +11,41 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [typingUsers, setTypingUsers] = useState([]);
   const flatListRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     loadMessages();
-    socketService.connect().then(() => {
-      socketService.socket.emit('join:room', { roomId: room._id, userId: user.id });
-      socketService.socket.on('message:new', handleNewMessage);
-    });
+    connectSocket();
 
     return () => {
-      socketService.socket.emit('leave:room', room._id);
-      socketService.socket.off('message:new');
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      socketService.leaveRoom(room._id);
+      socketService.off('message:new', handleNewMessage);
+      socketService.off('typing:start', handleTypingStart);
+      socketService.off('typing:stop', handleTypingStop);
     };
   }, []);
 
+  const connectSocket = async () => {
+    try {
+      await socketService.connect();
+      socketService.joinRoom(room._id, user.id);
+      socketService.on('message:new', handleNewMessage);
+      socketService.on('typing:start', handleTypingStart);
+      socketService.on('typing:stop', handleTypingStop);
+    } catch (error) {
+      console.error('Socket connection error:', error);
+    }
+  };
+
   const loadMessages = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/chats/rooms/${room._id}/messages`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.data.success) {
-        setMessages(response.data.messages);
+      const response = await apiService.getRoomMessages(room._id);
+      if (response.success) {
+        setMessages(response.messages);
+        setTimeout(() => scrollToBottom(), 200);
       }
     } catch (error) {
       console.error('Load messages error:', error);
@@ -46,15 +59,38 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
     scrollToBottom();
   };
 
+  const handleTypingStart = ({ userId, username }) => {
+    if (userId !== user.id) {
+      setTypingUsers((prev) => [...new Set([...prev, username])]);
+    }
+  };
+
+  const handleTypingStop = ({ userId }) => {
+    setTypingUsers((prev) => prev.filter(u => u !== userId));
+  };
+
+  const handleTextChange = (text) => {
+    setInputMessage(text);
+
+    if (text.trim()) {
+      socketService.startTyping(room._id, user.id);
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socketService.stopTyping(room._id, user.id);
+      }, 3000);
+    } else {
+      socketService.stopTyping(room._id, user.id);
+    }
+  };
+
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
-    socketService.socket.emit('message:send', {
-      roomId: room._id,
-      senderId: user.id,
-      message: inputMessage.trim(),
-    });
+    socketService.stopTyping(room._id, user.id);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
+    socketService.sendMessage(room._id, user.id, inputMessage.trim());
     setInputMessage('');
     scrollToBottom();
   };
@@ -85,7 +121,7 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: theme.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: theme.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <UserAvatar username={room.type === 'group' ? room.name : otherUser?.displayName} size={40} theme={theme} />
         <View style={styles.headerInfo}>
@@ -94,7 +130,7 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
           </Text>
           {room.type === 'private' && (
             <Text style={[styles.headerSubtitle, { color: otherUser?.isOnline ? theme.online : theme.textSecondary }]}>
-              {otherUser?.isOnline ? 'Online' : 'Offline'}
+              {otherUser?.isOnline ? '🟢 Online' : 'Offline'}
             </Text>
           )}
         </View>
@@ -106,12 +142,19 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
         renderItem={renderMessage}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.messagesList}
+        onContentSizeChange={scrollToBottom}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No messages yet. Start the conversation!</Text>
+            <Text style={styles.emptyIcon}>💬</Text>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No messages yet</Text>
+            <Text style={[styles.emptySubtext, { color: theme.placeholder }]}>Start the conversation!</Text>
           </View>
         }
       />
+
+      {typingUsers.length > 0 && (
+        <TypingIndicator username={typingUsers[0]} theme={theme} />
+      )}
 
       <View style={[styles.inputContainer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TextInput
@@ -119,7 +162,7 @@ const ChatRoomScreen = ({ route, user, token, theme, isDarkMode }) => {
           placeholder="Type a message..."
           placeholderTextColor={theme.placeholder}
           value={inputMessage}
-          onChangeText={setInputMessage}
+          onChangeText={handleTextChange}
           multiline
           maxLength={1000}
         />
@@ -144,7 +187,9 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 12, marginTop: 2 },
   messagesList: { paddingHorizontal: 15, paddingVertical: 10 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
-  emptyText: { fontSize: 16 },
+  emptyIcon: { fontSize: 80, marginBottom: 15 },
+  emptyText: { fontSize: 18, fontWeight: '600', marginBottom: 5 },
+  emptySubtext: { fontSize: 14 },
   inputContainer: { flexDirection: 'row', alignItems: 'flex-end', padding: 10, borderTopWidth: 1 },
   input: { flex: 1, borderRadius: 24, paddingHorizontal: 18, paddingVertical: 10, fontSize: 16, maxHeight: 100, marginRight: 10 },
   sendButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },

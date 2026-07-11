@@ -1,5 +1,5 @@
 // Configuration file for API and Socket URLs
-// PRODUCTION DEPLOYMENT - Render Backend
+// PRODUCTION DEPLOYMENT - Render Backend V2.0
 export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://chatflix-sjfr.onrender.com';
 export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'https://chatflix-sjfr.onrender.com';
 
