@@ -1,575 +1,346 @@
-# 💬 Real-Time Chat Application
+# 💬 ChatFlix V2.0
 
-A modern real-time chat application built with React Native (frontend) and Node.js + Express + Socket.io (backend).
+A modern, full-featured real-time chat application built with React Native (Expo) and Node.js.
 
-## 📋 Table of Contents
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/maheshsingh20/ChatFlix)
+[![React Native](https://img.shields.io/badge/React%20Native-0.72.6-61DAFB.svg)](https://reactnative.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg)](https://nodejs.org/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-4.6-010101.svg)](https://socket.io/)
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
-- [Running the Application](#running-the-application)
-- [Environment Variables](#environment-variables)
-- [API Documentation](#api-documentation)
-- [Design Decisions](#design-decisions)
-- [Assumptions](#assumptions)
-- [Bonus Features Implemented](#bonus-features-implemented)
-- [Deployment](#deployment)
-- [Screenshots](#screenshots)
+## 🌟 Features
 
-## ✨ Features
+### Authentication & User Management
+- ✅ Email/password authentication with JWT
+- ✅ User registration and login
+- ✅ Secure password hashing with bcrypt
+- ✅ Persistent sessions
+- ✅ User profiles with display names and avatars
 
-### Core Features
-- ✅ **Real-time messaging** using Socket.io
-- ✅ **Send and receive messages** instantly without page refresh
-- ✅ **Chat history** persists after refresh
-- ✅ **Message timestamps** displayed in a readable format
-- ✅ **Clean and user-friendly** interface
-- ✅ **REST APIs** for sending messages and fetching chat history
+### Messaging
+- ✅ Real-time one-to-one private chats
+- ✅ Group chat support (backend ready)
+- ✅ Message delivery status (sent ✓ / delivered ✓✓ / read ✓✓)
+- ✅ Typing indicators with animations
+- ✅ Emoji support
+- ✅ Message timestamps
+- ✅ Chat history with pagination
+- ✅ Auto-scroll to latest messages
 
-### Bonus Features
-- ✅ **Username-based login** (dummy authentication)
-- ✅ **Typing indicator** - see when someone is typing
-- ✅ **Online/offline user status** - see who's currently online
-- ✅ **Message read/delivered status** - track message delivery
-- ✅ **MongoDB integration** - persistent message storage
-- ✅ **Graceful error handling** for API and Socket errors
+### User Experience
+- ✅ Dark/Light theme toggle with iOS-style colors
+- ✅ Color-coded user avatars
+- ✅ Online/offline status indicators
+- ✅ User search by username or email
+- ✅ Contact list management
+- ✅ Pull-to-refresh chat list
+- ✅ Unread message badges
+- ✅ Smooth animations and transitions
+- ✅ Loading states and error handling
 
-## 🛠 Tech Stack
+## 🚀 Quick Start
 
-### Frontend
-- **React Native** with Expo
-- **Socket.io-client** for real-time communication
-- **Axios** for REST API calls
-- **AsyncStorage** for local data persistence
-- **Moment.js** for timestamp formatting
+### Prerequisites
+- Node.js 18+ and npm
+- MongoDB Atlas account (or local MongoDB)
+- Expo CLI for mobile app development
+- Android Studio (for Android) or Xcode (for iOS)
 
-### Backend
-- **Node.js** with Express
-- **Socket.io** for real-time bidirectional communication
-- **MongoDB** with Mongoose for database
-- **dotenv** for environment configuration
-- **CORS** for cross-origin requests
+### Backend Setup
 
-## 📁 Project Structure
+```bash
+cd backend
+npm install
+
+# Create .env file with your credentials
+cp .env.example .env
+# Edit .env with your MongoDB URI and JWT secret
+
+# Start server
+npm start
+```
+
+Backend will run on `http://localhost:3000`
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+
+# Start Expo development server
+npm start
+
+# Run on specific platform
+npm run android  # Android
+npm run ios      # iOS
+```
+
+## 📱 Live Deployment
+
+- **Backend**: [https://chatflix-sjfr.onrender.com](https://chatflix-sjfr.onrender.com)
+- **Status**: ✅ Live and operational
+- **Version**: 2.0.0
+- **MongoDB**: Atlas Cloud Database
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+**Frontend:**
+- React Native 0.72.6 with Expo SDK 49
+- React Navigation v6 for routing
+- Socket.io-client v4.6 for real-time communication
+- Axios for REST API calls
+- AsyncStorage for local data persistence
+- Moment.js for date/time formatting
+
+**Backend:**
+- Node.js with Express.js
+- Socket.io v4 for WebSocket connections
+- MongoDB with Mongoose ODM
+- JWT for authentication
+- bcryptjs for password hashing
+- CORS enabled for cross-origin requests
+
+### Project Structure
 
 ```
-chat-app/
+ChatFlix/
 ├── backend/
 │   ├── config/
-│   │   └── database.js          # MongoDB connection
+│   │   └── database.js           # MongoDB connection
 │   ├── controllers/
-│   │   └── messageController.js # Message business logic
+│   │   ├── authController.js     # Authentication logic
+│   │   ├── userController.js     # User management
+│   │   ├── chatController.js     # Chat room management
+│   │   └── messageController.js  # Message handling (V1)
+│   ├── middleware/
+│   │   └── auth.js               # JWT verification
 │   ├── models/
-│   │   ├── Message.js           # Message schema
-│   │   └── User.js              # User schema
+│   │   ├── User.js               # User schema (V1)
+│   │   ├── EnhancedUser.js       # User schema with auth (V2)
+│   │   ├── ChatRoom.js           # Chat room schema
+│   │   ├── Message.js            # Message schema (V1)
+│   │   └── EnhancedMessage.js    # Message with status (V2)
 │   ├── routes/
-│   │   └── messageRoutes.js     # REST API routes
+│   │   ├── authRoutes.js         # Auth endpoints
+│   │   ├── userRoutes.js         # User endpoints
+│   │   ├── chatRoutes.js         # Chat endpoints
+│   │   └── messageRoutes.js      # Message endpoints (V1)
 │   ├── utils/
-│   │   └── socketHandler.js     # Socket.io event handlers
-│   ├── .env                     # Environment variables
-│   ├── .env.example             # Environment template
-│   ├── package.json
-│   └── server.js                # Entry point
+│   │   └── socketHandler.js      # Socket.io event handlers
+│   ├── .env                      # Environment variables
+│   ├── server.js                 # Application entry point
+│   └── package.json
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── MessageBubble.js    # Message display component
-│   │   │   └── TypingIndicator.js  # Typing animation
+│   │   │   ├── EnhancedMessageBubble.js  # Message display with status
+│   │   │   ├── TypingIndicator.js        # Typing animation
+│   │   │   └── UserAvatar.js             # Color-coded avatars
 │   │   ├── screens/
-│   │   │   ├── LoginScreen.js      # Login UI
-│   │   │   └── ChatScreen.js       # Main chat UI
+│   │   │   ├── AuthScreen.js             # Login/Signup
+│   │   │   ├── ChatListScreen.js         # Conversation list
+│   │   │   ├── ChatRoomScreen.js         # Chat interface
+│   │   │   └── ContactsScreen.js         # User search & contacts
 │   │   ├── services/
-│   │   │   ├── apiService.js       # REST API calls
-│   │   │   └── socketService.js    # Socket.io client
+│   │   │   ├── apiService.js             # REST API integration
+│   │   │   └── socketService.js          # Socket.io client
 │   │   └── utils/
-│   │       └── config.js           # App configuration
-│   ├── App.js                   # Root component
-│   ├── app.json                 # Expo configuration
-│   ├── package.json
-│   └── babel.config.js
+│   │       ├── config.js                 # App configuration
+│   │       └── theme.js                  # Dark/Light themes
+│   ├── assets/                           # Images and icons
+│   ├── App.js                            # Root component
+│   ├── app.json                          # Expo configuration
+│   ├── eas.json                          # EAS Build configuration
+│   └── package.json
 │
-└── README.md                    # This file
+├── DEPLOY_NOW.md                         # Deployment guide
+└── README.md                             # This file
 ```
 
-## 📦 Prerequisites
+## 🔌 API Endpoints
 
-Before running this application, make sure you have the following installed:
-
-- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-- **npm** or **yarn** - Comes with Node.js
-- **MongoDB** - [Download](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- **Expo CLI** - For React Native development
-- **Android Studio** or **Xcode** - For mobile emulator (optional)
-- **Physical Device** - Android or iOS (optional)
-
-## 🚀 Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd chat-app
+### Authentication
+```
+POST /api/auth/register    # Register new user
+POST /api/auth/login       # Login user
 ```
 
-### 2. Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Create .env file from example
-copy .env.example .env
-
-# Edit .env file with your MongoDB URI (if using MongoDB Atlas or custom URI)
-# PORT=3000
-# MONGODB_URI=mongodb://localhost:27017/chatapp
-# NODE_ENV=development
+### Users
+```
+GET  /api/users/contacts          # Get user's contacts
+GET  /api/users/search?query=     # Search users
 ```
 
-### 3. Frontend Setup
-
-```bash
-# Navigate to frontend directory (from project root)
-cd frontend
-
-# Install dependencies
-npm install
-
-# Install Expo CLI globally (if not already installed)
-npm install -g expo-cli
-
-# Create .env file (optional, uses localhost by default)
-copy .env.example .env
+### Chat Rooms
+```
+GET  /api/chats/rooms                    # Get user's chat rooms
+GET  /api/chats/rooms/private/:userId    # Get/create private room
+POST /api/chats/rooms/group              # Create group room
+GET  /api/chats/rooms/:roomId/messages   # Get room messages
+POST /api/chats/rooms/:roomId/messages   # Send message (REST)
 ```
 
-### 4. MongoDB Setup
-
-**Option A: Local MongoDB**
-- Install MongoDB Community Edition
-- Start MongoDB service:
-  ```bash
-  # Windows
-  net start MongoDB
-  
-  # Mac/Linux
-  sudo systemctl start mongod
-  ```
-
-**Option B: MongoDB Atlas (Cloud)**
-1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Get your connection string
-4. Update `MONGODB_URI` in backend `.env` file
-
-## 🏃 Running the Application
-
-### Start Backend Server
-
-```bash
-# From backend directory
-cd backend
-
-# Start the server
-npm start
-
-# OR for development with auto-reload
-npm run dev
+### Health Check
+```
+GET  /health    # Server status
 ```
 
-The backend server will start on `http://localhost:3000`
+## 🔧 Socket.io Events
 
-You should see:
-```
-✅ MongoDB connected successfully
-🚀 Server is running on port 3000
-📡 Socket.io is ready for connections
-```
-
-### Start Frontend Application
-
-**For Android Emulator:**
-
-```bash
-# From frontend directory
-cd frontend
-
-# Start Expo
-npm start
-
-# Press 'a' to open Android emulator
+### Client → Server
+```javascript
+'join:room'         // Join a chat room
+'leave:room'        // Leave a chat room
+'message:send'      // Send a message
+'typing:start'      // User started typing
+'typing:stop'       // User stopped typing
 ```
 
-**For Physical Device:**
-
-1. Install **Expo Go** app from Play Store (Android) or App Store (iOS)
-2. Start the development server:
-   ```bash
-   npm start
-   ```
-3. Scan the QR code with Expo Go app (Android) or Camera app (iOS)
-
-**Important for Physical Devices:**
-- Make sure your device and computer are on the same network
-- Update `src/utils/config.js` with your computer's IP address:
-  ```javascript
-  export const API_URL = 'http://YOUR_IP_ADDRESS:3000';
-  export const SOCKET_URL = 'http://YOUR_IP_ADDRESS:3000';
-  ```
-- Find your IP address:
-  - Windows: `ipconfig` (look for IPv4 Address)
-  - Mac/Linux: `ifconfig` or `ip addr`
-
-**For Web:**
-
-```bash
-npm start
-# Press 'w' to open in browser
+### Server → Client
+```javascript
+'message:new'       // New message received
+'typing:start'      // Someone is typing
+'typing:stop'       // Typing stopped
+'user:online'       // User came online
+'user:offline'      // User went offline
 ```
+
+## 🎨 Themes
+
+### Light Mode
+- Clean white/blue design
+- High contrast for readability
+- iOS-inspired colors
+
+### Dark Mode
+- Pure black background (#000000)
+- iOS-style accent colors
+- Reduced eye strain
+- OLED-friendly
 
 ## 🔐 Environment Variables
 
 ### Backend (.env)
-
 ```env
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/chatapp
-NODE_ENV=development
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/chatapp
+JWT_SECRET=your_super_secret_key_here
+JWT_EXPIRE=30d
+NODE_ENV=production
 ```
 
-### Frontend (.env) - Optional
-
+### Frontend (.env - optional)
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:3000
-EXPO_PUBLIC_SOCKET_URL=http://localhost:3000
+EXPO_PUBLIC_API_URL=https://chatflix-sjfr.onrender.com
+EXPO_PUBLIC_SOCKET_URL=https://chatflix-sjfr.onrender.com
 ```
 
-**Note:** For Android emulator, use `http://10.0.2.2:3000` instead of `localhost`
+## 📦 Building for Production
 
-## 📡 API Documentation
-
-### REST Endpoints
-
-#### 1. Health Check
-```http
-GET /health
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Server is running",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-#### 2. Get Chat History
-```http
-GET /api/messages?limit=50&skip=0
-```
-
-**Query Parameters:**
-- `limit` (optional): Number of messages to fetch (default: 50)
-- `skip` (optional): Number of messages to skip (default: 0)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "message_id",
-      "username": "john",
-      "message": "Hello!",
-      "timestamp": "2024-01-01T00:00:00.000Z",
-      "status": "read"
-    }
-  ],
-  "pagination": {
-    "total": 100,
-    "limit": 50,
-    "skip": 0
-  }
-}
-```
-
-#### 3. Send Message (REST fallback)
-```http
-POST /api/messages
-Content-Type: application/json
-
-{
-  "username": "john",
-  "message": "Hello, everyone!"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "message_id",
-    "username": "john",
-    "message": "Hello, everyone!",
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "status": "sent"
-  }
-}
-```
-
-#### 4. Update Message Status
-```http
-PATCH /api/messages/:messageId/status
-Content-Type: application/json
-
-{
-  "status": "read"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "message_id",
-    "status": "read"
-  }
-}
-```
-
-### Socket.io Events
-
-#### Client → Server Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `user:login` | `username` (string) | Login with username |
-| `message:send` | `{ username, message }` | Send a new message |
-| `typing:start` | `username` (string) | User started typing |
-| `typing:stop` | `username` (string) | User stopped typing |
-| `message:delivered` | `messageId` (string) | Mark message as delivered |
-| `message:read` | `messageId` (string) | Mark message as read |
-
-#### Server → Client Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `message:receive` | `{ _id, username, message, timestamp, status }` | New message received |
-| `user:joined` | `{ username, onlineUsers[] }` | User joined chat |
-| `user:left` | `{ username, onlineUsers[] }` | User left chat |
-| `users:online` | `onlineUsers[]` | Current online users |
-| `user:typing` | `username` (string) | User is typing |
-| `user:stopped-typing` | `username` (string) | User stopped typing |
-| `message:status-update` | `{ messageId, status }` | Message status changed |
-
-## 🎨 Design Decisions
-
-### 1. **Architecture Pattern**
-- **Clean Architecture**: Separated concerns into controllers, models, routes, and utilities
-- **Service Layer**: Frontend uses dedicated service files for API and Socket communication
-- **Component-Based UI**: Reusable React Native components for better maintainability
-
-### 2. **Real-Time Communication**
-- **Socket.io**: Chosen for its reliability, automatic reconnection, and broad browser support
-- **Event-Driven**: All real-time features use Socket.io events for instant updates
-- **REST API Fallback**: REST endpoints available as backup for message sending
-
-### 3. **Data Persistence**
-- **MongoDB**: NoSQL database chosen for flexible schema and scalability
-- **Mongoose ODM**: Provides schema validation and easier database operations
-- **Message Indexing**: Timestamp indexed for faster query performance
-
-### 4. **State Management**
-- **React Hooks**: useState and useEffect for local state management
-- **AsyncStorage**: Persistent username storage for auto-login
-- **No Redux**: Kept simple due to small app scope
-
-### 5. **Error Handling**
-- **Try-Catch Blocks**: All async operations wrapped in error handlers
-- **User Feedback**: Alerts and console logs for debugging
-- **Graceful Degradation**: App continues working even if some features fail
-
-### 6. **UI/UX Design**
-- **WhatsApp-inspired**: Familiar bubble-style chat interface
-- **Material Design**: Clean, modern aesthetic with proper elevation and shadows
-- **Responsive**: Works on different screen sizes
-- **Accessibility**: Proper contrast ratios and touch targets
-
-## 📝 Assumptions
-
-1. **Authentication**: Implemented as dummy username-based login (no password or OAuth)
-2. **Single Chat Room**: All users share one global chat room (no private channels)
-3. **Message History**: Limited to last 50 messages by default (configurable)
-4. **Network**: Assumes stable internet connection for real-time features
-5. **MongoDB**: Assumes MongoDB is running locally or connection string is provided
-6. **Expo**: Frontend uses Expo for simplified React Native development
-7. **Username Uniqueness**: System allows duplicate usernames (could be enhanced)
-8. **Data Retention**: Messages stored permanently (could add auto-cleanup)
-
-## 🎁 Bonus Features Implemented
-
-- ✅ **Username-based Login**: Simple authentication with AsyncStorage persistence
-- ✅ **Typing Indicator**: Animated dots when users are typing
-- ✅ **Online/Offline Status**: Real-time user presence tracking
-- ✅ **Message Status**: Sent/Delivered/Read indicators
-- ✅ **MongoDB Integration**: Persistent message and user storage
-- ✅ **Auto-Reconnect**: Socket.io automatically reconnects on disconnect
-- ✅ **Chat History**: Previous messages loaded on app start
-- ✅ **Timestamps**: Human-readable message times
-- ✅ **User Count**: Display number of online users
-
-## 🚀 Deployment
-
-### Backend Deployment (Render/Railway)
-
-**Using Render:**
-
-1. Push code to GitHub
-2. Go to [Render Dashboard](https://dashboard.render.com/)
-3. Create New → Web Service
-4. Connect your repository
-5. Configure:
-   - Build Command: `cd backend && npm install`
-   - Start Command: `cd backend && npm start`
-   - Add Environment Variables (PORT, MONGODB_URI)
-6. Deploy
-
-**Using Railway:**
-
-1. Push code to GitHub
-2. Go to [Railway](https://railway.app/)
-3. New Project → Deploy from GitHub
-4. Select your repository
-5. Add MongoDB service
-6. Add environment variables
-7. Deploy
-
-### MongoDB Atlas Setup
-
-1. Create cluster at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create database user
-3. Whitelist IP addresses (0.0.0.0/0 for all)
-4. Get connection string
-5. Update `MONGODB_URI` environment variable
-
-### Frontend Deployment
-
-**Building APK:**
-
+### Android APK
 ```bash
 cd frontend
-
-# Build for Android
-expo build:android
-
-# OR using EAS Build (recommended)
-npm install -g eas-cli
-eas build --platform android
+npx eas-cli@latest build --platform android --profile preview
 ```
 
-**Web Deployment:**
-
+### iOS IPA
 ```bash
-# Build for web
-expo build:web
-
-# Deploy to Netlify/Vercel
+cd frontend
+npx eas-cli@latest build --platform ios --profile preview
 ```
 
-## 📱 Testing the Application
+Build takes 10-15 minutes. Download link will be provided upon completion.
 
-### Manual Testing Checklist
+## 🧪 Testing
 
-1. **Login Flow**
-   - [ ] Enter username and login
-   - [ ] Username persists after app reload
+### Backend Testing
+```bash
+# Health check
+curl https://chatflix-sjfr.onrender.com/health
 
-2. **Messaging**
-   - [ ] Send a message
-   - [ ] Receive messages from other users
-   - [ ] Messages appear instantly
-   - [ ] Timestamps are correct
+# Register user
+curl -X POST https://chatflix-sjfr.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@test.com","password":"test123"}'
 
-3. **Real-Time Features**
-   - [ ] Typing indicator shows when someone types
-   - [ ] Online users count updates
-   - [ ] User join/leave notifications
+# Login
+curl -X POST https://chatflix-sjfr.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"test123"}'
+```
 
-4. **Persistence**
-   - [ ] Close and reopen app - messages should persist
-   - [ ] Refresh page - chat history loads
+### Frontend Testing
+1. Install APK on Android device
+2. Register a new account
+3. Login with credentials
+4. Search for other users
+5. Start a conversation
+6. Send messages and test real-time delivery
+7. Toggle dark/light mode
+8. Test typing indicators
 
-5. **Error Handling**
-   - [ ] Try with server offline - graceful error
-   - [ ] Send empty message - validation works
+## 🚢 Deployment
+
+See [DEPLOY_NOW.md](./DEPLOY_NOW.md) for detailed deployment instructions.
+
+### Quick Deploy Steps:
+1. **Backend on Render**: Connect GitHub, add environment variables, deploy
+2. **Frontend APK**: Run EAS build command, wait 10-15 minutes
+3. **Test**: Install APK and verify all features
 
 ## 🐛 Troubleshooting
 
 ### Backend Issues
-
-**MongoDB Connection Failed:**
-```bash
-# Check if MongoDB is running
-# Windows:
-sc query MongoDB
-
-# Mac/Linux:
-sudo systemctl status mongod
-```
-
-**Port Already in Use:**
-```bash
-# Change PORT in .env file or kill the process
-# Windows:
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-
-# Mac/Linux:
-lsof -ti:3000 | xargs kill -9
-```
+- **Cannot connect to MongoDB**: Check MONGODB_URI format and credentials
+- **JWT errors**: Ensure JWT_SECRET is set in environment variables
+- **Port in use**: Change PORT in .env or kill process using port 3000
 
 ### Frontend Issues
+- **Cannot connect to server**: Verify API_URL in config.js
+- **Build fails**: Delete node_modules and package-lock.json, reinstall
+- **Socket disconnects**: Check CORS settings on backend
+- **Dependencies conflict**: Use exact versions specified in package.json
 
-**Cannot Connect to Server:**
-- Update `src/utils/config.js` with correct IP/URL
-- For Android emulator: use `http://10.0.2.2:3000`
-- For physical device: use computer's IP address
-- Check if backend server is running
+## 📝 Version History
 
-**Expo Start Failed:**
-```bash
-# Clear Expo cache
-expo start -c
+### V2.0.0 (Current) - Complete Rewrite
+- Full authentication system with JWT
+- Room-based architecture (private & group chats)
+- Enhanced UI with dark/light themes
+- Typing indicators and message status
+- User search and contacts
+- Improved security and scalability
 
-# Clear npm cache
-npm cache clean --force
-rm -rf node_modules
-npm install
-```
+### V1.0.0 - Initial Release
+- Basic real-time chat
+- Simple username-based login
+- Global chat room
+- Message persistence
+
+## 🤝 Contributing
+
+This is a personal project, but suggestions and feedback are welcome!
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is open source and available for learning purposes.
 
-## 👨‍💻 Developer
+## 👨‍💻 Author
 
-Created as part of a technical assessment for a real-time chat application.
+**Mahesh Singh**
+- GitHub: [@maheshsingh20](https://github.com/maheshsingh20)
+- Project: [ChatFlix](https://github.com/maheshsingh20/ChatFlix)
 
 ## 🙏 Acknowledgments
 
-- Socket.io documentation
-- React Native community
-- Expo framework
-- MongoDB documentation
+- Built with React Native and Expo
+- Real-time powered by Socket.io
+- Database: MongoDB Atlas
+- Deployed on Render
 
 ---
 
-**Note**: This README provides comprehensive setup and usage instructions. For any issues or questions, please refer to the troubleshooting section or check the respective technology documentation.
+**Status**: ✅ Production Ready | **Version**: 2.0.0 | **Last Updated**: July 2026
